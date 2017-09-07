@@ -4,8 +4,10 @@
     <meta charset="utf-8">
     <title>图表上图</title>
 
-    <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.14/3.14/dijit/themes/tundra/tundra.css">
-    <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.14/3.14/esri/css/esri.css">
+
+    		<link rel="stylesheet" type="text/css" href="http://192.168.97.25:8080/arcgis_js_api/library/3.12/3.12/dijit/themes/tundra/tundra.css"/>
+    		<link rel="stylesheet" type="text/css" href="http://192.168.97.25:8080/arcgis_js_api/library/3.12/3.12/esri/css/esri.css" />
+    		<link rel="stylesheet" type="text/css" href="http://192.168.97.25:8080/arcgis_js_api/library/3.12/3.12/dijit/themes/claro/claro.css" />
 
     <link href="ChartInfoWindow.css" rel="stylesheet"/>
     <style>
@@ -33,7 +35,7 @@
             }]
         };
     </script>
-    <script src="http://localhost/arcgis_js_api/library/3.14/3.14/init.js"></script>
+      <script type="text/javascript" src="http://192.168.97.25:8080/arcgis_js_api/library/3.12/3.12/init.js"></script>
 </head>
 <body class="claro">
 <div id="map" ></div>
@@ -76,32 +78,42 @@
             array, domConstruct, win, Chart, theme, Pie, Tooltip, MoveSlice
 
     ) {
-        var map = new Map("map", {
-            center: [112, 38],
-            zoom: 8,
-            basemap: "topo"
-        });
+      var map = new esri.Map("map", { logo: false});
 
-        var featureLayer = new FeatureLayer("https://zhongren.esri.com/arcgis/rest/services/MyMapService/MapServer/0", {
-            mode: FeatureLayer.MODE_SNAPSHOT,
-            outFields: ["*"]
-        });
+      var imageParameters = new esri.layers.ImageParameters();
+      imageParameters.format = "jpeg";  //set the image type to PNG24, note default is PNG8.
+      var tileMapServiceLayer = new esri.layers.ArcGISTiledMapServiceLayer("http://192.168.97.24:6080/arcgis/rest/services/PCGISTiled/MapServer",
+      { "opacity": 1, "imageParameters": imageParameters });
 
-        var defaultSymbol = new SimpleFillSymbol().setStyle(SimpleFillSymbol.STYLE_NULL);
-        var renderer = new SimpleRenderer(defaultSymbol);
-        featureLayer.setRenderer(renderer);
+      map.addLayer(tileMapServiceLayer);
+      var extGraphics = new esri.geometry.Extent(117.0552123329997, 31.62440781313796, 117.4752123329997, 32.06440781313796, new esri.SpatialReference({ wkid: 4326 }));
+      map.setExtent(extGraphics);
 
-        map.on("load", function (evt) {
-            displayChart();
-        });
+      //读取一个feature图层
 
 
+      var featureLayer = new esri.layers.FeatureLayer("http://192.168.97.25:6080/arcgis/rest/services/HeifeiAdminRegion/MapServer/1",{
+        outFields: ["*"]
+      });
+      var symbol = new esri.symbol.SimpleMarkerSymbol(esri.symbol.SimpleMarkerSymbol.STYLE_SQUARE, 10, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_SOLID,
+          new esri.Color([255,0,0]), 1
+      ), new esri.Color([0,255,0,0.25]));
 
-        map.addLayer(featureLayer);
+      //简单渲染
+      var defaultSymbol = new esri.renderer.SimpleRenderer(symbol);
+      featureLayer.setRenderer(defaultSymbol);
+      map.addLayer(featureLayer,1);
+
+      map.on("load", function (evt) {
+          displayChart();
+      });
+
+
+
         ////============================================gzr==============
         function displayChart(){
             var query = new Query();
-            var queryUrl= 'https://zhongren.esri.com/arcgis/rest/services/MyMapService/MapServer/0';
+            var queryUrl= 'http://192.168.97.25:6080/arcgis/rest/services/HeifeiAdminRegion/MapServer/1';
             var queryTask = new QueryTask(queryUrl);
             query.where = "1=1";
             query.outSpatialReference = map.spatialReference;
@@ -114,11 +126,7 @@
             for(var i=0; i< results.features.length; i++){
                 var chartData= null;
                 chartData= [];
-                if(results.features[i].attributes[results.fields[7].name]!= null
-                        &&results.features[i].attributes[results.fields[6].name]!= null
-                        &&results.features[i].attributes[results.fields[5].name]!= null
-                        &&results.features[i].attributes[results.fields[4].name]!= null
-                        &&results.features[i].attributes[results.fields[3].name]!= null){
+                if(true){
                     var nodeChart = null;
                     nodeChart = domConstruct.create("div", {id: 'nodeTest'+ i, style: "width:300px;height:300px;" }, win.body());
                     var myChart = echarts.init(document.getElementById("nodeTest"+ i));
@@ -168,11 +176,11 @@
                                 radius : '55%',
                                 center: ['50%', '60%'],
                                 data:[
-                                    {value: results.features[i].attributes[results.fields[7].name], name:'08年'},
-                                    {value: results.features[i].attributes[results.fields[6].name], name:'09年'},
-                                    {value: results.features[i].attributes[results.fields[5].name], name:'10年'},
-                                    {value: results.features[i].attributes[results.fields[4].name], name:'11年'},
-                                    {value: results.features[i].attributes[results.fields[3].name], name:'12年'}
+                                    {value: 5, name:'08年'},
+                                    {value: 15, name:'09年'},
+                                    {value: 20, name:'10年'},
+                                    {value: 10, name:'11年'},
+                                    {value: 30, name:'12年'}
                                 ]
                             }
                         ]
